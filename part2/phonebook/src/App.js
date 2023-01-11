@@ -2,21 +2,26 @@ import "./App.css"
 import UserList from "./components/UserList"
 import FilterField from "./components/FilterField"
 import PersonForm from "./components/PersonForm"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import axios from "axios"
 
 const App = () => {
-  const [persons, setPersons] = useState([
-    { name: "Arto Hellas", phoneNumber: 111222 },
-  ])
+  const [persons, setPersons] = useState([])
   const [filterString, setFilterString] = useState("")
   const [newName, setNewName] = useState("")
   const [newPhoneNumber, setNewPhoneNumber] = useState("")
   const setPhoneNumberWrapper = (newnum) => setNewPhoneNumber(newnum)
-  const setNameWrapper = (newname) => {
-    setNewName(newname)
-  }
+  const setNameWrapper = (newname) => setNewName(newname) 
   const setPersonsWrapper = (newperson) => setPersons(newperson)
   const setFilterStringWrapper = (filterstr) => setFilterString(filterstr)
+  const effect = () =>{
+      console.log("Ran useEffect")
+      axios
+          .get('http://localhost:3001/persons')
+          .then(response => {
+              setPersons(response.data)
+          })}
+    useEffect(effect,[])
   return (
     <div>
       <h2>Phonebook</h2>

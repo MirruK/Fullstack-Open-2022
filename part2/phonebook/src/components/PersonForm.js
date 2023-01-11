@@ -28,7 +28,7 @@ const PersonForm = ({ state }) => {
         alert("Please supply a phone number")
         return
       }
-      setPersons(persons.concat({ name: newName, phoneNumber: newPhoneNumber }))
+      setPersons(persons.concat({ name: newName, number: newPhoneNumber }))
       setNewPhoneNumber("")
       setNewName("")
     }

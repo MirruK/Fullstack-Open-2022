@@ -1,9 +1,9 @@
-const Entry = ({ name, phoneNumber }) => {
+const Entry = ({ name, number }) => {
   return (
     <>
       <p>
         Name: {name} <br />
-        Phone Number: {phoneNumber}
+        Phone Number: {number}
       </p>
     </>
   )

@@ -10,7 +10,7 @@ const UserList = ({ filterString, persons }) => {
           else return item.name.includes(filterString)
         })
         .map((person) => (
-          <Entry name={person.name} phoneNumber={person.phoneNumber} />
+          <Entry name={person.name} number={person.number} />
         ))}
     </div>
   )
