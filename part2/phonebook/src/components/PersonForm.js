@@ -1,25 +1,30 @@
+import axios from "axios"
+import requests from "./../serverRequest"
+
 const PersonForm = ({ state }) => {
+  //Make this more concise
   const newName = state.nameState
   const setNewName = state.setNameState
   const newPhoneNumber = state.numberState
   const setNewPhoneNumber = state.setNumberState
   const persons = state.persons
   const setPersons = state.setPersons
+  const showMessage = state.showMessage
+
   const personNotCreated = () => {
-    if (persons.find((person) => person.name == newName) !== undefined) {
-      alert(`${newName} already exists in Address book`)
-      return false
+    //TODO: Refactor this crap and the handlePersonCreation crap
+    if (persons.find((person) => person.name == newName) === undefined) {
+      return 1
     } else if (
-      persons.find((person) => person.phoneNumber == newPhoneNumber) !==
+      persons.find((person) => person.phoneNumber == newPhoneNumber) ===
       undefined
     ) {
-      alert(`${newPhoneNumber} already exists in Address book`)
-      return false
-    } else return true
+      return 0
+    } else return 2
   }
   const handlePersonCreation = () => {
-    //console.log("PersonCreation Called")
-    if (personNotCreated()) {
+    const createdStatus = personNotCreated()
+    if (createdStatus !== 0) {
       if (newName == "") {
         alert("Please supply a name")
         return
@@ -28,18 +33,60 @@ const PersonForm = ({ state }) => {
         alert("Please supply a phone number")
         return
       }
-      setPersons(persons.concat({ name: newName, number: newPhoneNumber }))
+      if (createdStatus === 2) {
+        alert(`${newPhoneNumber} already exists in Address book`)
+        return
+      }
+      const newPerson = {
+        name: newName,
+        number: newPhoneNumber,
+        id: Math.max(...persons.map((person) => person.id)) + 1,
+      }
+      requests.serverAddPerson(newPerson)
+      setPersons(persons.concat(newPerson))
+      showMessage(`Successfully added person ${newPerson.name}`, 3000, "green")
       setNewPhoneNumber("")
       setNewName("")
+    } else if (createdStatus === 1) {
+      alert("Please supply a phone number to update your current one")
+      return
+    } else {
+      const newPerson = {
+        name: newName,
+        number: newPhoneNumber,
+        id: persons.find((pson) => pson.name === newName).id,
+      }
+      requests
+        .serverUpdatePerson(newPerson)
+        .then((val) => {
+          const upd_obj = persons.map((obj) => {
+            if (obj.id === newPerson.id) {
+              return newPerson
+            }
+            return obj
+          })
+          setPersons(upd_obj)
+          showMessage(
+            `Successfully updated phone number to: ${newPhoneNumber}`,
+            3000,
+            "green"
+          )
+        })
+        .catch((err) =>
+          showMessage(
+            `Number update failed: Person already deleted. Msg. ${err}`,
+            3000,
+            "red"
+          )
+        )
     }
   }
 
   return (
     <div>
-      <h2>Add a new person</h2>
+      <h2 className="section-header">Add a new person</h2>
       <form
         onSubmit={(event) => {
-          //console.log("Form submitted in PersonForm")
           event.preventDefault()
           handlePersonCreation()
           event.target.reset()

@@ -7,6 +7,16 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+.section-header {
+  color: green;
+  font-style: italic;
+}
+
+.main-header {
+  color: #5050ff;
+  font-style: bold;
+}
+
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
