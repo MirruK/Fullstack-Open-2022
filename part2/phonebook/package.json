@@ -17,7 +17,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "buildCopy": "rm -rf build && react-scripts build && cp -r build /home/mirek/phonebook-backend/",
+    "buildCopy": "rm -rf build && react-scripts build && cp -r build /home/mirek/Desktop/javascript/phonebook-backend",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "server": "json-server -p3001 --watch db.json"
