@@ -7,6 +7,8 @@
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
     "axios": "^1.2.2",
+    "dotenv": "^16.0.3",
+    "http-proxy-middleware": "^2.0.6",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-scripts": "5.0.1",
@@ -15,9 +17,17 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "buildCopy": "rm -rf build && react-scripts build && cp -r build /home/mirek/phonebook-backend/",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "server": "json-server -p3001 --watch db.json"
+  },
+  "options": {
+    "proxy": "http://127.0.0.1:3001/",
+    "allowedHosts": [
+      "127.0.0.1",
+      "localhost"
+    ]
   },
   "eslintConfig": {
     "extends": [

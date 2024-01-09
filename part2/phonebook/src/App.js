@@ -6,6 +6,8 @@ import Message from "./components/Message"
 import { useState, useEffect } from "react"
 import axios from "axios"
 
+const URL = process.env.REACT_APP_DEV_URL || "api/persons"
+
 const App = () => {
   const [persons, setPersons] = useState([])
   const [filterString, setFilterString] = useState("")
@@ -20,29 +22,36 @@ const App = () => {
       setMessageInfo({ ...messageInfo, show: false })
     }, timespan)
   }
-  const effect = () => {
+
+  useEffect(()=>{
+  const effect = async() => {
     console.log("Ran useEffect")
-    axios.get("http://localhost:3001/persons").then((response) => {
-      setPersons(response.data)
-    })
+    const personsresponse = await axios.get(URL)
+      console.log("Response,", personsresponse)
+      if(personsresponse.status === 200){
+        setPersons(personsresponse.data)
+          return
+      }else{
+          console.log("Error getting persons. Code: ", personsresponse.status)
+        setPersons([])
+      }
   }
-  useEffect(effect, [])
+      effect()
+  }, [])
   return (
     <div>
       <h1 className="main-header">Phonebook</h1>
       <Message info={messageInfo} />
       <FilterField setFilterString={(val) => setFilterString(val)} />
       <br />
-      <PersonForm
-        state={{
-          nameState: newName,
-          setNameState: (val) => setNewName(val),
-          numberState: newPhoneNumber,
-          setNumberState: (val) => setNewPhoneNumber(val),
-          persons: persons,
-          setPersons: (val) => setPersons(val),
-          showMessage: showMessage,
-        }}
+      <PersonForm 
+      newName={newName} 
+      setNewName={setNewName} 
+      newPhoneNumber={newPhoneNumber}
+      setNewPhoneNumber={setNewPhoneNumber}
+      persons={persons}
+      setPersons={setPersons}
+      showMessage={showMessage}
       />
       <h2 className="section-header">Numbers</h2>
       <UserList

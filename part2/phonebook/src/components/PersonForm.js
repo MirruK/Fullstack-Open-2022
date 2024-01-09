@@ -1,16 +1,6 @@
-import axios from "axios"
 import requests from "./../serverRequest"
 
-const PersonForm = ({ state }) => {
-  //Make this more concise
-  const newName = state.nameState
-  const setNewName = state.setNameState
-  const newPhoneNumber = state.numberState
-  const setNewPhoneNumber = state.setNumberState
-  const persons = state.persons
-  const setPersons = state.setPersons
-  const showMessage = state.showMessage
-
+const PersonForm = ({newName, setNewName, newPhoneNumber, setNewPhoneNumber, persons, setPersons, showMessage}) => {
   const personNotCreated = () => {
     //TODO: Refactor this crap and the handlePersonCreation crap
     if (persons.find((person) => person.name == newName) === undefined) {
@@ -22,7 +12,7 @@ const PersonForm = ({ state }) => {
       return 0
     } else return 2
   }
-  const handlePersonCreation = () => {
+  const handlePersonCreation = async() => {
     const createdStatus = personNotCreated()
     if (createdStatus !== 0) {
       if (newName == "") {
@@ -39,14 +29,22 @@ const PersonForm = ({ state }) => {
       }
       const newPerson = {
         name: newName,
-        number: newPhoneNumber,
-        id: Math.max(...persons.map((person) => person.id)) + 1,
+        number: newPhoneNumber
       }
-      requests.serverAddPerson(newPerson)
-      setPersons(persons.concat(newPerson))
-      showMessage(`Successfully added person ${newPerson.name}`, 3000, "green")
-      setNewPhoneNumber("")
-      setNewName("")
+      const addResponse = requests.serverAddPerson(newPerson)
+            addResponse.then((res)=>{
+                let addedPerson = res.data.newPerson
+                setPersons(persons.concat(addedPerson))
+                showMessage(`Successfully added person ${addedPerson.name} with id: ${addedPerson.id}`, 3000, "green")
+                setNewPhoneNumber("")
+                setNewName("")
+            }).catch((err)=>{
+                console.log("sum ting wong: ", err)
+                showMessage(err, 3000, "red")
+                setNewPhoneNumber("")
+                setNewName("")
+                return
+            })
     } else if (createdStatus === 1) {
       alert("Please supply a phone number to update your current one")
       return
