@@ -31,5 +31,19 @@ blogRouter.delete("/blogs/:id", async (request, response) => {
 });
 
 // TODO: Exercise 4-14: PUT request to update blogPosts, (update blogPost likes)
+blogRouter.put("/blogs/:id", async (request, response)=>{
+  logger.info(`Incomming PUT request to /api/blogs/${request.params.id}`);
+  const postToUpdate = await Blog.findOne({_id: request.params.id});
+  // logger.info("request body: ", request.body);
+  // logger.info("matching doc: ", postToUpdate);
+  for(const [key,value] of Object.entries(request.body)){
+    if(postToUpdate[key]) {
+      postToUpdate[key] = value;
+    }
+  }
+  //logger.info("modified doc: ", postToUpdate);
+  await postToUpdate.save();
+  response.status(200).end();
+})
 
 export { blogRouter };

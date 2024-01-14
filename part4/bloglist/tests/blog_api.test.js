@@ -108,6 +108,37 @@ describe("Testing POST functionality", () => {
   });
 });
 
+describe("Testing DELETE and PUT functionality", () => {
+  test("Deleting a post by id removes it from the db", async () => {
+    const initialBlogs = (await Blog.find({}));
+    const blogToDelete = initialBlogs[0].id;
+    console.log("Id of found post: ", blogToDelete);
+    const response = await api
+      .delete(`/api/blogs/${blogToDelete}`)
+      .expect(204);
+    
+    const blogsAtEnd = await Blog.find({});
+
+    expect(blogsAtEnd).toHaveLength(
+      initialBlogs.length - 1
+    )
+    const ids = blogsAtEnd.map(r => r.id)
+    expect(ids).not.toContain(blogToDelete);
+  });
+  test("Blogpost fields can be updating using a PUT request", async () => {
+    const initialBlogs = await Blog.find({});
+    const blogToUpdate = initialBlogs[0].id;
+    console.log("Id of found post: ", blogToUpdate);
+    const response = await api
+      .put(`/api/blogs/${blogToUpdate}`)
+      .send({title: "modified title"})
+      .expect(200);
+    const blogsAtEnd = await Blog.find({});
+    const titles = blogsAtEnd.map(r => r.title);
+    expect(titles).toContain("modified title");
+  });
+});
+
 afterAll(async () => {
   await mongoose.connection.close();
 });
