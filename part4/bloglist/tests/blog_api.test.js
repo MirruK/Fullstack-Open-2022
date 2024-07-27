@@ -1,7 +1,9 @@
 import mongoose from "mongoose";
 import supertest from "supertest";
 import { app } from "../index.js";
-import { Blog } from "../models/blog_post.js";
+import { Blog } from "../models/blog_posts.js";
+import { hash } from "bcrypt";
+import { User } from "../models/blog_user.js";
 
 const api = supertest(app);
 
@@ -125,7 +127,7 @@ describe("Testing DELETE and PUT functionality", () => {
     const ids = blogsAtEnd.map(r => r.id)
     expect(ids).not.toContain(blogToDelete);
   });
-  test("Blogpost fields can be updating using a PUT request", async () => {
+  test("Blogpost fields can be updated using a PUT request", async () => {
     const initialBlogs = await Blog.find({});
     const blogToUpdate = initialBlogs[0].id;
     console.log("Id of found post: ", blogToUpdate);
@@ -136,6 +138,56 @@ describe("Testing DELETE and PUT functionality", () => {
     const blogsAtEnd = await Blog.find({});
     const titles = blogsAtEnd.map(r => r.title);
     expect(titles).toContain("modified title");
+  });
+});
+
+const initialUsers = [
+  {
+    username: "user1",
+    name: "user1",
+    password: await hash("testSecret", 10),
+    posts: [],
+  },
+  {
+    username: "user2",
+    name: "user2",
+    password: await hash("testSecret", 10),
+    posts: [],
+  },
+];
+
+beforeEach(async () => {
+  await User.deleteMany({});
+  for (let user of initialUsers) {
+    const userObject = User(user);
+    await userObject.save();
+  }
+});
+
+describe("Testing users GET functionality", () => {
+  test("User data is returned as json", async () => {
+    await api
+      .get("/api/users")
+      .expect(200)
+      .expect("Content-Type", /application\/json/);
+  });
+
+  test("Users have a defined 'id'-field", async () => {
+    const response = await api
+      .get("/api/users")
+      .expect(200)
+      .expect("Content-Type", /application\/json/);
+    expect(response.body.every((b) => b.id)).toBe(true);
+  });
+
+  test("There are two saved users", async () => {
+    const response = await api
+      .get("/api/users")
+      .expect(200)
+      .expect("Content-Type", /application\/json/);
+    const contents = response.body.map((r) => r.username);
+    expect(response.body).toHaveLength(initialUsers.length);
+    expect(contents).toContain("user1");
   });
 });
 

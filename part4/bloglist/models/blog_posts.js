@@ -6,6 +6,7 @@ const blogSchema = new Schema(
     author: { type: String, required: true },
     url: String,
     likes: { type: Number, default: 0 },
+    user: {type: Schema.Types.ObjectId, ref: 'User'}
   },
   {
     collection: process.env.NODE_ENV === "test" ? "testBlogPosts" : "blogPosts",
