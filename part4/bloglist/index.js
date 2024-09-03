@@ -7,6 +7,7 @@ import { logger } from "./utils/logger.js";
 import { PORT, MONGODB_URI } from "./utils/environment.js";
 import { userRouter } from "./controller/users.js";
 import { loginRouter } from "./controller/login.js";
+import { userExtractor, tokenExtractor } from "./middleware/auth_middleware.js";
 
 const app = express();
 
@@ -20,6 +21,7 @@ try {
 
 app.use(express.json());
 app.use(cors());
+app.use(tokenExtractor);
 
 app.use("/api/blogs", blogRouter);
 app.use("/api/users", userRouter);

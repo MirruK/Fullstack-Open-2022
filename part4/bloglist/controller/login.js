@@ -20,7 +20,7 @@ loginRouter.post("/", async (request, response) => {
     username: matchingUser.username,
     id: matchingUser._id,
   };
-  const token = sign(userForToken, process.env.SECRET);
+  const token = sign(userForToken, process.env.SECRET, { expiresIn: 1800 });
 
   response
     .status(200)

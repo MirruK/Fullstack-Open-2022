@@ -8,14 +8,6 @@ const { verify } = pkg;
 // Will be registered on the path /api/blogs
 const blogRouter = Router();
 
-function getTokenFrom(request) {
-  const authorization = request.get("authorization");
-  if (authorization && authorization.startsWith("Bearer ")) {
-    return authorization.replace("Bearer ", "");
-  }
-  return null;
-}
-
 blogRouter.get("/", async (request, response) => {
   logger.info("Incomming GET request to /api/blogs");
   const blogs = await Blog.find({}).populate("user", { username: 1, name: 1 });
@@ -24,9 +16,17 @@ blogRouter.get("/", async (request, response) => {
 });
 
 blogRouter.post("/", async (request, response) => {
-  logger.info("Incomming POST request to /api/blogs");
-  // TODO: Do this part in a middleware and register it ex. 4-20
-  const decodedToken = verify(getTokenFrom(request), process.env.SECRET);
+  logger.info(
+    "Incomming POST request to /api/blogs with token: ",
+    request.token
+  );
+  let decodedToken;
+  try {
+    decodedToken = verify(request.token, process.env.SECRET);
+  } catch (e) {
+    logger.error("Unexpected error during token verification:", e);
+    return response.status(401).json({ error: "token invalid" });
+  }
   if (!decodedToken.id) {
     return response.status(401).json({ error: "token invalid" });
   }
