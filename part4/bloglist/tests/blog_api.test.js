@@ -22,6 +22,40 @@ const initialPosts = [
   },
 ];
 
+// Store an authentication token which will be used for tests that require auth
+let authToken;
+
+beforeAll(async () => {
+  // Delete users
+  await User.deleteMany({});
+  const testUser = {
+    username: "author1",
+    name: "Author 1",
+    password: "password",
+  };
+
+  for (let user of initialUsers) {
+    const userObject = User(user);
+    await userObject.save();
+  }
+  // Create user
+  await api.post("/api/users/register").send(testUser).expect(201);
+
+  // Login user
+  const loginResponse = await api
+    .post("/api/login")
+    .send({ username: testUser.username, password: testUser.password })
+    .expect(200);
+
+  // Set the token for use in future tests
+  authToken = loginResponse.body.token;
+});
+
+// Users functionality testing deletes the premade author1 as it is not used
+// beforeEach(async () => {
+//   await User.deleteMany({});
+// });
+
 beforeEach(async () => {
   await Blog.deleteMany({});
   for (let post of initialPosts) {
@@ -61,12 +95,13 @@ describe("Testing POST functionality", () => {
   test("Creating a post finishes successfully", async () => {
     const newBlogpost = {
       title: "test POST",
-      author: "POSTer",
+      author: "author1",
       url: "post.post",
       likes: 1,
     };
     await api
       .post("/api/blogs")
+      .set("Authorization", `Bearer ${authToken}`)
       .send(newBlogpost)
       .expect(201)
       .expect("Content-Type", /application\/json/);
@@ -81,11 +116,12 @@ describe("Testing POST functionality", () => {
   test("Posts created with undefined likes default to zero likes", async () => {
     const newBlogpost = {
       title: "test POST",
-      author: "POSTer",
+      author: "author1",
       url: "post.post",
     };
     await api
       .post("/api/blogs")
+      .set("Authorization", `Bearer ${authToken}`)
       .send(newBlogpost)
       .expect(201)
       .expect("Content-Type", /application\/json/);
@@ -104,6 +140,7 @@ describe("Testing POST functionality", () => {
     };
     const response = await api
       .post("/api/blogs")
+      .set("Authorization", `Bearer ${authToken}`)
       .send(newBlogpost)
       .expect(400)
       .expect("Content-Type", /application\/json/);
@@ -112,31 +149,30 @@ describe("Testing POST functionality", () => {
 
 describe("Testing DELETE and PUT functionality", () => {
   test("Deleting a post by id removes it from the db", async () => {
-    const initialBlogs = (await Blog.find({}));
-    const blogToDelete = initialBlogs[0].id;
-    console.log("Id of found post: ", blogToDelete);
+    const initialBlogs = await Blog.find({});
+    const userBlogs = await Blog.find({ author: "author1" });
+    const blogToDelete = userBlogs[0].id;
     const response = await api
       .delete(`/api/blogs/${blogToDelete}`)
+      .set("Authorization", `Bearer ${authToken}`)
       .expect(204);
-    
+
     const blogsAtEnd = await Blog.find({});
 
-    expect(blogsAtEnd).toHaveLength(
-      initialBlogs.length - 1
-    )
-    const ids = blogsAtEnd.map(r => r.id)
+    expect(blogsAtEnd).toHaveLength(initialBlogs.length - 1);
+    const ids = blogsAtEnd.map((r) => r.id);
     expect(ids).not.toContain(blogToDelete);
   });
   test("Blogpost fields can be updated using a PUT request", async () => {
-    const initialBlogs = await Blog.find({});
+    const initialBlogs = await Blog.find({ author: "author1" });
     const blogToUpdate = initialBlogs[0].id;
-    console.log("Id of found post: ", blogToUpdate);
     const response = await api
       .put(`/api/blogs/${blogToUpdate}`)
-      .send({title: "modified title"})
+      .set("Authorization", `Bearer ${authToken}`)
+      .send({ title: "modified title" })
       .expect(200);
     const blogsAtEnd = await Blog.find({});
-    const titles = blogsAtEnd.map(r => r.title);
+    const titles = blogsAtEnd.map((r) => r.title);
     expect(titles).toContain("modified title");
   });
 });
@@ -156,15 +192,15 @@ const initialUsers = [
   },
 ];
 
-beforeEach(async () => {
-  await User.deleteMany({});
-  for (let user of initialUsers) {
-    const userObject = User(user);
-    await userObject.save();
-  }
-});
-
 describe("Testing users GET functionality", () => {
+  beforeAll(async () => {
+    // Delete and recreate the initial users so the state is correct for the user tests
+    await User.deleteMany({});
+    for (let user of initialUsers) {
+      const userObject = User(user);
+      await userObject.save();
+    }
+  });
   test("User data is returned as json", async () => {
     await api
       .get("/api/users")
